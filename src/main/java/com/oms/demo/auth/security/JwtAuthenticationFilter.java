@@ -33,6 +33,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
 			throws ServletException, IOException {
 		
 		String authHeader=request.getHeader("Authorization");
+		System.out.println("authHeader=="+authHeader);
 		
 		 if (authHeader == null || !authHeader.startsWith("Bearer ")) {
 	            filterChain.doFilter(request, response);
@@ -40,6 +41,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
 	        }
 		 
 		 String token = authHeader.substring(7);
+		 System.out.println("token=="+token);
+		 try {
 	        String username = jwtUtil.extractUsername(token);
 
 	        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -52,6 +55,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
 	                SecurityContextHolder.getContext().setAuthentication(authToken);
 	            }
 	        }
+		 } catch (Exception e) {
+			    // Invalid/expired/malformed token — leave unauthenticated, Spring Security rejects it downstream
+			}
 
 	        filterChain.doFilter(request, response);
 		
