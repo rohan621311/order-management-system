@@ -1,5 +1,6 @@
 package com.oms.demo.auth.controller;
 
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,5 +34,7 @@ public class AuthController {
 	public LoginResponse login(@Valid @RequestBody LoginRequest request) {
 		return authservice.login(request);
 	}
+	
+	
 	
 }
