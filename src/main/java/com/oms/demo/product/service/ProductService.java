@@ -2,11 +2,14 @@ package com.oms.demo.product.service;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.oms.demo.category.entity.Category;
 import com.oms.demo.category.repository.CategoryRepository;
+import com.oms.demo.common.response.PagedResponse;
 import com.oms.demo.product.dto.ProductRequest;
 import com.oms.demo.product.dto.ProductResponse;
 import com.oms.demo.product.entity.Product;
@@ -47,10 +50,13 @@ public class ProductService {
 	}
 	
 	@Transactional(readOnly = true)
-	public List<ProductResponse> getall(){
-		return productRepository.findAll().stream()
-				.map(ProductResponse::fromEntity)
-				.toList();
+	public PagedResponse<ProductResponse> getall(Pageable pageable){
+		
+		Page<ProductResponse> page =productRepository.findAll(pageable)
+				.map(ProductResponse::fromEntity);
+		
+		return PagedResponse.from(page);
+		
 	}
 	
 	@Transactional(readOnly = true)
