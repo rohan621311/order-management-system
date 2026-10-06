@@ -16,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.oms.demo.category.entity.Category;
 import com.oms.demo.category.repository.CategoryRepository;
 import com.oms.demo.common.exception.BadRequestException;
+import com.oms.demo.common.exception.DuplicateResourceException;
+import com.oms.demo.common.exception.ResourceNotFoundException;
 import com.oms.demo.common.response.PagedResponse;
 import com.oms.demo.product.dto.ProductRequest;
 import com.oms.demo.product.dto.ProductResponse;
@@ -40,11 +42,11 @@ public class ProductService {
 	public ProductResponse create (ProductRequest productRequest) {
 		
 		 if (productRepository.findByName(productRequest.getName()).isPresent()) {
-	            throw new RuntimeException("Product already exists: " + productRequest.getName());
+	            throw new DuplicateResourceException("Product already exists: " + productRequest.getName());
 	        }
 		 
 		 Category category = categoryRepository.findById(productRequest.getCategoryId())
-	                .orElseThrow(() -> new RuntimeException("Category not found: " + productRequest.getCategoryId()));
+	                .orElseThrow(() -> new ResourceNotFoundException("Category not found: " + productRequest.getCategoryId()));
 		 
 		 Product product= Product.builder()
 				 .name(productRequest.getName())
@@ -109,7 +111,7 @@ public class ProductService {
 	@Transactional(readOnly = true)
 	public ProductResponse getById(Long id) {
 		Product product= productRepository.findById(id)
-				.orElseThrow(() -> new RuntimeException("Product not found: "+id));
+				.orElseThrow(() -> new ResourceNotFoundException("Product not found: "+id));
 		
 		return ProductResponse.fromEntity(product);
 	}
@@ -118,10 +120,10 @@ public class ProductService {
 	public ProductResponse update(Long id, ProductRequest productRequest) {
 		
 		Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found: " + id));
 
         Category category = categoryRepository.findById(productRequest.getCategoryId())
-                .orElseThrow(() -> new RuntimeException("Category not found: " + productRequest.getCategoryId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found: " + productRequest.getCategoryId()));
         
         product.setName(productRequest.getName());
         product.setDescription(productRequest.getDescription());
@@ -135,7 +137,7 @@ public class ProductService {
 	@Transactional
 	 public void delete(Long id) {
 	        if (!productRepository.existsById(id)) {
-	            throw new RuntimeException("Product not found: " + id);
+	            throw new ResourceNotFoundException("Product not found: " + id);
 	        }
 	        productRepository.deleteById(id);
 	    }
