@@ -1,9 +1,12 @@
 package com.oms.demo.product.service;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +17,7 @@ import com.oms.demo.product.dto.ProductRequest;
 import com.oms.demo.product.dto.ProductResponse;
 import com.oms.demo.product.entity.Product;
 import com.oms.demo.product.repository.ProductRepository;
+import com.oms.demo.product.repository.ProductSpecification;
 
 
 @Service
@@ -49,14 +53,32 @@ public class ProductService {
 		
 	}
 	
+	
 	@Transactional(readOnly = true)
-	public PagedResponse<ProductResponse> getall(Pageable pageable){
-		
-		Page<ProductResponse> page =productRepository.findAll(pageable)
-				.map(ProductResponse::fromEntity);
-		
-		return PagedResponse.from(page);
-		
+	public PagedResponse<ProductResponse> search(String name, Long categoryId,
+	                                             BigDecimal minPrice, BigDecimal maxPrice,
+	                                             Pageable pageable) {
+
+	    List<Specification<Product>> filters = new ArrayList<>();
+
+	    if (name != null && !name.isBlank()) {
+	        filters.add(ProductSpecification.nameContains(name));
+	    }
+	    if (categoryId != null) {
+	        filters.add(ProductSpecification.hasCategory(categoryId));
+	    }
+	    if (minPrice != null) {
+	        filters.add(ProductSpecification.priceAtLeast(minPrice));
+	    }
+	    if (maxPrice != null) {
+	        filters.add(ProductSpecification.priceAtMost(maxPrice));
+	    }
+
+	    Page<ProductResponse> page = productRepository
+	            .findAll(Specification.allOf(filters), pageable)
+	            .map(ProductResponse::fromEntity);
+
+	    return PagedResponse.from(page);
 	}
 	
 	@Transactional(readOnly = true)
