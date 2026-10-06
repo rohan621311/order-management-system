@@ -8,6 +8,8 @@ import com.oms.demo.category.dto.CategoryRequest;
 import com.oms.demo.category.dto.CategoryResponse;
 import com.oms.demo.category.entity.Category;
 import com.oms.demo.category.repository.CategoryRepository;
+import com.oms.demo.common.exception.DuplicateResourceException;
+import com.oms.demo.common.exception.ResourceNotFoundException;
 
 @Service
 public class CategoryService {
@@ -21,7 +23,7 @@ public class CategoryService {
 	public CategoryResponse create(CategoryRequest categoryRequest) {
 		
 		if(categoryRepository.findByName(categoryRequest.getName()).isPresent()) {
-			throw new RuntimeException("Category already exists: "+categoryRequest.getName());
+			throw new DuplicateResourceException("Category already exists: "+categoryRequest.getName());
 		}
 		
 		Category category= Category.builder()
@@ -40,7 +42,7 @@ public class CategoryService {
 	
 	public CategoryResponse getById(Long id){
 		Category category = categoryRepository.findById(id)
-				.orElseThrow(() -> new RuntimeException("Category not found: "+id));
+				.orElseThrow(() -> new ResourceNotFoundException("Category not found: "+id));
 
 		return CategoryResponse.fromEntity(category);
 	}
@@ -48,7 +50,7 @@ public class CategoryService {
 	public CategoryResponse update(Long id, CategoryRequest request) {
 		
 		Category category= categoryRepository.findById(id)
-				.orElseThrow(() -> new RuntimeException("Category not found: "+id));
+				.orElseThrow(() -> new ResourceNotFoundException("Category not found: "+id));
 		
 		category.setName(request.getName());
 		category.setDescription(request.getDescription());
@@ -58,7 +60,7 @@ public class CategoryService {
 	
 	public void delete(Long id) {
 		if(!categoryRepository.existsById(id)) {
-			throw new RuntimeException("Category not found: " + id);
+			throw new ResourceNotFoundException("Category not found: " + id);
 		}
 		
 		categoryRepository.deleteById(id);

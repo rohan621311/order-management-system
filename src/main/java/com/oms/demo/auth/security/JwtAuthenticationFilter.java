@@ -15,8 +15,10 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter{
 	
 	
@@ -33,7 +35,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
 			throws ServletException, IOException {
 		
 		String authHeader=request.getHeader("Authorization");
-		System.out.println("authHeader=="+authHeader);
 		
 		 if (authHeader == null || !authHeader.startsWith("Bearer ")) {
 	            filterChain.doFilter(request, response);
@@ -41,7 +42,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
 	        }
 		 
 		 String token = authHeader.substring(7);
-		 System.out.println("token=="+token);
 		 try {
 	        String username = jwtUtil.extractUsername(token);
 
@@ -56,7 +56,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
 	            }
 	        }
 		 } catch (Exception e) {
-			    // Invalid/expired/malformed token — leave unauthenticated, Spring Security rejects it downstream
+			 log.debug("Rejected JWT: {}", e.getClass().getSimpleName());
 			}
 
 	        filterChain.doFilter(request, response);
