@@ -2,6 +2,8 @@ package com.oms.demo.product.controller;
 
 import java.util.List;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.oms.demo.common.response.PagedResponse;
 import com.oms.demo.product.dto.ProductRequest;
 import com.oms.demo.product.dto.ProductResponse;
 import com.oms.demo.product.service.ProductService;
@@ -35,8 +38,9 @@ public class ProductController {
 	}
 	
 	@GetMapping
-	public List<ProductResponse> getall(){
-		return productService.getall();
+	public PagedResponse<ProductResponse> getall(
+			@PageableDefault(size=10,sort="id") Pageable pageable){
+		return productService.getall(pageable);
 	}
 	
 	@GetMapping("/{id}")
