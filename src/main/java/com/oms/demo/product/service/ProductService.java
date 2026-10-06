@@ -3,15 +3,19 @@ package com.oms.demo.product.service;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.oms.demo.category.entity.Category;
 import com.oms.demo.category.repository.CategoryRepository;
+import com.oms.demo.common.exception.BadRequestException;
 import com.oms.demo.common.response.PagedResponse;
 import com.oms.demo.product.dto.ProductRequest;
 import com.oms.demo.product.dto.ProductResponse;
@@ -54,6 +58,27 @@ public class ProductService {
 	}
 	
 	
+	private static final Map<String, String> SORT_FIELDS = Map.of(
+	        "id", "id",
+	        "name", "name",
+	        "price", "price",
+	        "categoryId", "category.id",
+	        "categoryName", "category.name"
+	);
+
+	private Pageable sanitize(Pageable pageable) {
+		List<Sort.Order> orders = new ArrayList<>();
+
+		for (Sort.Order order : pageable.getSort()) {
+			String entityPath = SORT_FIELDS.get(order.getProperty());
+			if (entityPath == null) {
+				throw new BadRequestException("Cannot sort by: " + order.getProperty());
+			}
+			orders.add(new Sort.Order(order.getDirection(), entityPath));
+		}
+		return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(orders));
+	}
+
 	@Transactional(readOnly = true)
 	public PagedResponse<ProductResponse> search(String name, Long categoryId,
 	                                             BigDecimal minPrice, BigDecimal maxPrice,
@@ -75,7 +100,7 @@ public class ProductService {
 	    }
 
 	    Page<ProductResponse> page = productRepository
-	            .findAll(Specification.allOf(filters), pageable)
+	            .findAll(Specification.allOf(filters), sanitize(pageable))
 	            .map(ProductResponse::fromEntity);
 
 	    return PagedResponse.from(page);
