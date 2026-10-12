@@ -1,0 +1,355 @@
+<title>3 YOE Prep Tracker</title>
+<style>
+  /* Layout: single-column timeline of phases, each a card of weeks with checkable tasks */
+  :root {
+    --bg: #faf9f7;
+    --surface: #ffffff;
+    --border: #e4e0d8;
+    --text: #22201c;
+    --muted: #6b6559;
+    --accent: #a8562f;
+    --accent-soft: #f2e2d6;
+    --done-bg: #eef3ea;
+    --done-text: #4c6b3f;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1a1815;
+      --surface: #232019;
+      --border: #38332b;
+      --text: #ece7df;
+      --muted: #a39a8a;
+      --accent: #e08a56;
+      --accent-soft: #3a2a20;
+      --done-bg: #243422;
+      --done-text: #9bc789;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1a1815;
+    --surface: #232019;
+    --border: #38332b;
+    --text: #ece7df;
+    --muted: #a39a8a;
+    --accent: #e08a56;
+    --accent-soft: #3a2a20;
+    --done-bg: #243422;
+    --done-text: #9bc789;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Source Sans 3", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    margin: 0;
+    padding-inline: 16px;
+    padding-block: 28px;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; }
+
+  header { margin-bottom: 28px; }
+  h1 {
+    font-family: "Fraunces", Georgia, serif;
+    font-size: clamp(1.6rem, 4vw, 2.2rem);
+    margin: 0 0 6px 0;
+    text-wrap: balance;
+  }
+  .subtitle { color: var(--muted); font-size: 0.95rem; margin: 0; }
+
+  .progress-shell {
+    margin-top: 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .progress-track {
+    flex: 1;
+    min-width: 140px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+  .progress-label {
+    font-variant-numeric: tabular-nums;
+    font-size: 0.9rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .reset-btn {
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-size: 0.8rem;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .reset-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .phase {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 20px 8px;
+    margin-bottom: 18px;
+  }
+  .phase-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+  }
+  .phase-head h2 {
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 1.15rem;
+    margin: 0;
+  }
+  .phase-weeks {
+    font-size: 0.78rem;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 2px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .phase-note {
+    color: var(--muted);
+    font-size: 0.88rem;
+    margin: 2px 0 14px 0;
+  }
+
+  .task {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 9px 4px;
+    border-top: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .task:first-of-type { border-top: none; }
+  .task input[type="checkbox"] {
+    margin-top: 3px;
+    width: 17px;
+    height: 17px;
+    accent-color: var(--accent);
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+  .task label {
+    font-size: 0.93rem;
+    line-height: 1.45;
+    cursor: pointer;
+  }
+  .task.done label {
+    color: var(--muted);
+    text-decoration: line-through;
+    text-decoration-color: var(--done-text);
+  }
+
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.8rem;
+    margin-top: 10px;
+    padding-bottom: 10px;
+  }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Source+Sans+3:wght@400;600&display=swap">
+
+<div class="wrap">
+  <header>
+    <h1>3 YOE Interview Prep</h1>
+    <p class="subtitle">14-week plan · 500-question set + system design, SQL, project depth, and mocks</p>
+    <div class="progress-shell">
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-label" id="progressLabel">0 / 0 done</div>
+      <button class="reset-btn" id="resetBtn" type="button">Reset progress</button>
+    </div>
+  </header>
+
+  <main id="phases"></main>
+
+  <footer>Progress is saved in this browser only.</footer>
+</div>
+
+<script>
+(function () {
+  var PHASES = [
+    {
+      title: "Phase 1 · Foundations",
+      weeks: "Weeks 1–4",
+      note: "Core Java, Collections, Concurrency, Spring/SQL theory",
+      tasks: [
+        "Week 1: Part 1 Sections 1–2 (OOPs/JVM, Concurrency) — explain each answer aloud from memory, then check",
+        "Week 2: Part 1 Sections 3–4 (Collections, Java 8+/Streams theory) + Part 2 Sections 1–2 (filtering/aggregation)",
+        "Week 3: Part 2 Sections 3–5 (grouping/collectors, advanced ops, real-world) — rewrite 10 from memory",
+        "Week 4: Part 1 Section 5 (Spring Boot/Microservices/SQL) + Part 6 Section 2 (SQL Practice Queries, Q16–30) — actually run each query, don't just read",
+        "Part 1 Section 6 (Q101–115): OOP gap-fill — Constructor vs Method, Polymorphism, Overloading/Overriding, Vector, LinkedHashSet, Iterator/ListIterator, Immutable Collections, Hashtable, Custom Exception, Lambda, try/catch/finally, Normalization, ACID",
+        "Part 1 Section 7 (Q116–125): JPA & Hibernate — ORM, Entity Mapping, Relationships, Fetch Types, Cascade Types, JPQL, Spring Data JPA CRUD, Persistence Context",
+        "Part 1 Section 8 (Q126–140): Spring Boot practical — Bean Lifecycle, Component Scan, REST API, DTO, Validation, @ControllerAdvice, layered architecture, Logging, Testing, JWT, Pagination, Sorting, Git, Refactoring",
+        "Checkpoint: explain HashMap internals, ConcurrentHashMap, @Transactional proxy mechanism, and JPA entity relationships without notes"
+      ]
+    },
+    {
+      title: "Phase 2 · DSA",
+      weeks: "Weeks 5–9",
+      note: "Part 3 — solve first, compare to answer second",
+      tasks: [
+        "Week 5: Part 3 Section 1–2 (arrays/strings, two-pointers/binary search) — solve before reading solution",
+        "Week 6: Part 3 Section 3 (linked lists, stacks, queues)",
+        "Week 7: Part 3 Section 4 (trees, graphs, recursion) — hardest area, spend extra time",
+        "Week 8: Part 3 Section 5 (DP, backtracking, sorting)",
+        "Week 9: Timed re-attempt — 15 random questions across Part 3, 15–20 min each, no looking at answers"
+      ]
+    },
+    {
+      title: "Phase 3 · System Design Basics",
+      weeks: "Weeks 10–11",
+      note: "Part 6 Section 1 (Q1–15) now covers this",
+      tasks: [
+        "Part 6 Q1–6: scaling, load balancing, caching (Redis), DB sharding, message queues, CAP theorem",
+        "Part 6 Q7: design practice — URL shortener",
+        "Part 6 Q8: design practice — rate limiter",
+        "Part 6 Q9: design practice — notification system",
+        "Part 6 Q10: design practice — e-commerce order flow",
+        "Part 6 Q11–15: monolith vs microservices, read scaling, eventual consistency, chat system, clarifying questions"
+      ]
+    },
+    {
+      title: "Phase 4 · Project & Behavioral Depth",
+      weeks: "Week 12",
+      note: "Your own modules are stronger material than generic answers — Part 6 Sections 3–4 back this up",
+      tasks: [
+        "Pick 2–3 significant projects/modules you built",
+        "For each: be ready to explain the problem, design decisions, a bug you hit and fixed, what you'd change now",
+        "Part 6 Q31–40: production debugging scenarios — practice narrating diagnosis, not just the fix",
+        "Part 6 Q41: learn the STAR format properly before writing any behavioral answers",
+        "Prepare STAR answer: a disagreement with a teammate or lead (Part 6 Q42)",
+        "Prepare STAR answer: a production issue you debugged (Part 6 Q44)",
+        "Prepare STAR answer: a time you had to learn something fast (Part 6 Q43)",
+        "Part 6 Q45: rehearse talking about your own project with design-decision depth, not just feature description",
+        "Part 6 Q46–50: prep answers for \"why leaving\", prioritization, \"questions for us\", and follow-up etiquette"
+      ]
+    },
+    {
+      title: "Phase 5 · Mocks & Weak-Spot Repair",
+      weeks: "Weeks 13–14",
+      note: "Fix only what mocks actually expose",
+      tasks: [
+        "Mock interview: DSA round",
+        "Mock interview: Java/Spring theory round",
+        "Mock interview: system design round",
+        "Mock interview: behavioral round",
+        "Revisit only the weak areas surfaced by mocks — don't re-read everything blindly"
+      ]
+    }
+  ];
+
+  var STORAGE_KEY = "interview-prep-tracker-v1";
+
+  function loadState() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function saveState(state) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (e) {}
+  }
+
+  var state = loadState();
+  var container = document.getElementById("phases");
+  var allCheckboxes = [];
+
+  PHASES.forEach(function (phase, pIdx) {
+    var phaseEl = document.createElement("section");
+    phaseEl.className = "phase";
+
+    var head = document.createElement("div");
+    head.className = "phase-head";
+    var h2 = document.createElement("h2");
+    h2.textContent = phase.title;
+    var weeks = document.createElement("span");
+    weeks.className = "phase-weeks";
+    weeks.textContent = phase.weeks;
+    head.appendChild(h2);
+    head.appendChild(weeks);
+    phaseEl.appendChild(head);
+
+    var note = document.createElement("p");
+    note.className = "phase-note";
+    note.textContent = phase.note;
+    phaseEl.appendChild(note);
+
+    phase.tasks.forEach(function (text, tIdx) {
+      var id = "t-" + pIdx + "-" + tIdx;
+      var row = document.createElement("div");
+      row.className = "task";
+
+      var cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.id = id;
+      cb.checked = !!state[id];
+      if (cb.checked) row.classList.add("done");
+
+      var label = document.createElement("label");
+      label.setAttribute("for", id);
+      label.textContent = text;
+
+      row.appendChild(cb);
+      row.appendChild(label);
+      phaseEl.appendChild(row);
+      allCheckboxes.push(cb);
+
+      cb.addEventListener("change", function () {
+        state[id] = cb.checked;
+        row.classList.toggle("done", cb.checked);
+        saveState(state);
+        updateProgress();
+      });
+    });
+
+    container.appendChild(phaseEl);
+  });
+
+  function updateProgress() {
+    var total = allCheckboxes.length;
+    var done = allCheckboxes.filter(function (cb) { return cb.checked; }).length;
+    var pct = total ? Math.round((done / total) * 100) : 0;
+    document.getElementById("progressFill").style.width = pct + "%";
+    document.getElementById("progressLabel").textContent = done + " / " + total + " done";
+  }
+
+  document.getElementById("resetBtn").addEventListener("click", function () {
+    allCheckboxes.forEach(function (cb) {
+      cb.checked = false;
+      cb.dispatchEvent(new Event("change"));
+    });
+  });
+
+  updateProgress();
+})();
+</script>
